@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Tracker - Serrure Metal Art</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      color: #888;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    @media (max-width: 620px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a45;
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .card h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #888;
+    }
+
+    .counter {
+      font-size: 5rem;
+      font-weight: 700;
+      color: #7c6fe0;
+      line-height: 1;
+    }
+
+    .counter-label {
+      font-size: 1rem;
+      color: #aaa;
+    }
+
+    .last-scan {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+    }
+
+    .last-scan span {
+      color: #aaa;
+    }
+
+    .qr-container img {
+      border-radius: 12px;
+      display: block;
+    }
+
+    .scan-url {
+      font-size: 0.78rem;
+      color: #555;
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .scan-url a {
+      color: #7c6fe0;
+      text-decoration: none;
+    }
+
+    .scan-url a:hover {
+      text-decoration: underline;
+    }
+
+    .recent-card {
+      grid-column: 1 / -1;
+    }
+
+    .recent-card h2 {
+      align-self: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .scans-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .scans-table th {
+      text-align: left;
+      color: #555;
+      padding: 8px 10px;
+      border-bottom: 1px solid #2a2a45;
+      font-weight: 500;
+    }
+
+    .scans-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid #1e1e35;
+      color: #ccc;
+    }
+
+    .scans-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty-state {
+      color: #444;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .badge-live {
+      display: inline-block;
+      background: #1e3a1e;
+      color: #5ecc5e;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .refresh-btn {
+      background: #2a2a45;
+      color: #aaa;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+
+    .refresh-btn:hover {
+      background: #3a3a60;
+      color: #fff;
+    }
+
+    footer {
+      margin-top: 48px;
+      color: #333;
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>QR Code Tracker</h1>
+    <p>Serrure Metal Art &mdash; Suivi des scans en temps r&eacute;el</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- Compteur principal -->
+    <div class="card">
+      <h2>Total des scans</h2>
+      <div class="counter" id="total">—</div>
+      <div class="counter-label">scans</div>
+      <div class="last-scan" id="last-scan">Dernier scan : <span>—</span></div>
+      <span class="badge-live" id="live-badge">EN DIRECT</span>
+      <button class="refresh-btn" onclick="loadStats()">Actualiser</button>
+    </div>
+
+    <!-- QR Code -->
+    <div class="card">
+      <h2>Votre QR Code</h2>
+      <div class="qr-container" id="qr-container">
+        <div style="width:300px;height:300px;background:#111;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#333;">
+          Chargement...
+        </div>
+      </div>
+      <div class="scan-url" id="scan-url">—</div>
+    </div>
+
+    <!-- Scans récents -->
+    <div class="card recent-card">
+      <h2>Scans r&eacute;cents</h2>
+      <div id="recent-scans" style="width:100%">
+        <div class="empty-state">Chargement...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Mise &agrave; jour automatique toutes les 10 secondes</footer>
+
+  <script>
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+
+        document.getElementById('total').textContent = data.total;
+
+        const lastScanEl = document.getElementById('last-scan');
+        if (data.lastScan) {
+          const d = new Date(data.lastScan);
+          lastScanEl.innerHTML = `Dernier scan : <span>${d.toLocaleString('fr-FR')}</span>`;
+        } else {
+          lastScanEl.innerHTML = `Dernier scan : <span>Aucun pour l'instant</span>`;
+        }
+
+        const container = document.getElementById('recent-scans');
+        if (!data.recentScans || data.recentScans.length === 0) {
+          container.innerHTML = '<div class="empty-state">Aucun scan pour l\'instant. Scannez le QR code avec votre t&eacute;l&eacute;phone !</div>';
+        } else {
+          container.innerHTML = `
+            <table class="scans-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date &amp; Heure</th>
+                  <th>Appareil</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.recentScans.map((scan, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${new Date(scan.timestamp).toLocaleString('fr-FR')}</td>
+                    <td>${formatUA(scan.userAgent)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (e) {
+        console.error('Erreur lors du chargement des stats', e);
+      }
+    }
+
+    async function loadQR() {
+      try {
+        const res = await fetch('/api/qrcode');
+        const data = await res.json();
+        document.getElementById('qr-container').innerHTML =
+          `<img src="${data.qrDataUrl}" width="280" height="280" alt="QR Code" />`;
+        document.getElementById('scan-url').innerHTML =
+          `URL de scan : <a href="${data.scanUrl}" target="_blank">${data.scanUrl}</a>`;
+      } catch (e) {
+        console.error('Erreur lors de la génération du QR code', e);
+      }
+    }
+
+    function formatUA(ua) {
+      if (!ua || ua === 'unknown') return 'Inconnu';
+      if (/iPhone|iPad|iPod/i.test(ua)) return 'iPhone / iPad';
+      if (/Android/i.test(ua)) return 'Android';
+      if (/Windows/i.test(ua)) return 'Windows';
+      if (/Mac/i.test(ua)) return 'Mac';
+      return ua.substring(0, 40) + (ua.length > 40 ? '…' : '');
+    }
+
+    // Initial load
+    loadQR();
+    loadStats();
+
+    // Auto-refresh every 10 seconds
+    setInterval(loadStats, 10000);
+  </script>
+
+</body>
+</html>
